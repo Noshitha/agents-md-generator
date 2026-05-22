@@ -1,0 +1,88 @@
+{
+  "repo_name": "full-stack-fastapi-template",
+  "repo_path": "/Users/noshitha/Desktop/Interview Preparation/Assessments/faros-agents-md-generator/target_repos/full-stack-fastapi-template",
+  "top_level_dirs": [
+    ".copier",
+    ".vscode",
+    "backend",
+    "frontend",
+    "hooks",
+    "img",
+    "scripts"
+  ],
+  "top_level_files": [
+    ".env",
+    ".pre-commit-config.yaml",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md",
+    "bun.lock",
+    "compose.override.yml",
+    "compose.traefik.yml",
+    "compose.yml",
+    "copier.yml",
+    "deployment.md",
+    "development.md",
+    "package.json",
+    "pyproject.toml",
+    "release-notes.md",
+    "uv.lock"
+  ],
+  "important_files": [
+    "README.md",
+    "compose.yml",
+    "compose.override.yml",
+    "pyproject.toml",
+    "package.json",
+    ".env",
+    ".github/workflows"
+  ],
+  "languages": [
+    "docker",
+    "python",
+    "typescript"
+  ],
+  "frameworks": [
+    "fastapi",
+    "react",
+    "sqlmodel",
+    "vite"
+  ],
+  "commands": {
+    "backend": [
+      "python -c \"import secrets; print(secrets.token_urlsafe(32))\"",
+      "pip install copier"
+    ],
+    "frontend": [
+      "npm run lint",
+      "npm run preview",
+      "npm run test:ui",
+      "npm run generate-client",
+      "npm run test",
+      "npm run dev",
+      "npm run build"
+    ],
+    "docker": [
+      "docker compose logs",
+      "docker compose up -d",
+      "docker compose down"
+    ],
+    "pyproject": [
+      "ruff check ."
+    ]
+  },
+  "inferred_risks": [
+    "backend_frontend_api_contract_drift",
+    "database_model_or_schema_change",
+    "secrets_or_environment_config",
+    "local_service_dependency_docker",
+    "auth_or_backend_security_sensitive_change"
+  ],
+  "summary": {
+    "has_backend": true,
+    "has_frontend": true,
+    "has_docker": true,
+    "has_env_example": true
+  }
+}
