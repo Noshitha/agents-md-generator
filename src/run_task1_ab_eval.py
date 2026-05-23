@@ -196,11 +196,7 @@ def run_condition(
     run_dir = out_dir / condition / f"run_{run_idx}"
     run_dir.mkdir(parents=True, exist_ok=True)
 
-    prompt_path = run_dir / "prompt.md"
-    output_path = run_dir / "output.md"
     metrics_path = run_dir / "metrics.json"
-
-    prompt_path.write_text(prompt, encoding="utf-8")
 
     api_result = call_openai(
         client=client,
@@ -210,7 +206,6 @@ def run_condition(
     )
 
     output_text = api_result["output_text"]
-    output_path.write_text(output_text, encoding="utf-8")
 
     reliability_metrics = calculate_reliability_metrics(output_text)
 
@@ -225,9 +220,6 @@ def run_condition(
         "condition": condition,
         "run_idx": run_idx,
         "model": model,
-        "agents_path": str(agents_path),
-        "prompt_path": str(prompt_path),
-        "output_path": str(output_path),
         "input_tokens": api_result["input_tokens"],
         "output_tokens": api_result["output_tokens"],
         "total_tokens": api_result["total_tokens"],
@@ -242,18 +234,16 @@ def run_condition(
 
 def summarize(all_metrics: list[dict]) -> dict:
     """Aggregate per-run metrics into per-condition means + a delta."""
-    numeric_fields = [
-        "input_tokens", "output_tokens", "total_tokens",
-        "latency_seconds", "estimated_cost_usd",
-        "plan_adherence_score", "plan_adherence_items_matched",
-    ]
-
     summary = {}
     for condition in sorted({m["condition"] for m in all_metrics}):
         rows = [m for m in all_metrics if m["condition"] == condition]
         rel_rows = [m["reliability_metrics"] for m in rows]
         n = len(rows)
-        entry = {field: mean(m[field] for m in rows) for field in numeric_fields}
+
+        cost_fields = ["input_tokens", "output_tokens", "total_tokens", "latency_seconds", "estimated_cost_usd"]
+        entry = {field: mean(m[field] for m in rows) for field in cost_fields}
+        entry["plan_adherence_score"]        = mean(r["plan_adherence_score"]        for r in rel_rows)
+        entry["plan_adherence_items_matched"] = mean(r["plan_adherence_items_matched"] for r in rel_rows)
         entry["task_success_rate"] = sum(r["task_success"] for r in rel_rows) / n
         entry["regression_count"]  = sum(r["is_broken"]    for r in rel_rows)
         entry["total_runs"] = n
@@ -261,7 +251,9 @@ def summarize(all_metrics: list[dict]) -> dict:
 
     if "baseline" in summary and "generated" in summary:
         b, g = summary["baseline"], summary["generated"]
-        delta = {f: g[f] - b[f] for f in numeric_fields}
+        delta_fields = ["input_tokens", "output_tokens", "total_tokens", "latency_seconds",
+                        "estimated_cost_usd", "plan_adherence_score", "plan_adherence_items_matched"]
+        delta = {f: g[f] - b[f] for f in delta_fields}
         extra = g["input_tokens"] - b["input_tokens"]
         delta["context_overhead_percent"] = (extra / b["input_tokens"] * 100) if b["input_tokens"] else 0
         delta["task_success_rate"] = g["task_success_rate"] - b["task_success_rate"]

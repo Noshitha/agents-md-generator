@@ -1,0 +1,38 @@
+{
+  "baseline": {
+    "input_tokens": 180,
+    "output_tokens": 778,
+    "total_tokens": 958,
+    "latency_seconds": 6.404842541397859,
+    "estimated_cost_usd": 0.00823,
+    "plan_adherence_score": 0.6,
+    "plan_adherence_items_matched": 3,
+    "task_success_rate": 1.0,
+    "regression_count": 0,
+    "total_runs": 3
+  },
+  "generated": {
+    "input_tokens": 806,
+    "output_tokens": 684,
+    "total_tokens": 1490,
+    "latency_seconds": 5.9130351803420735,
+    "estimated_cost_usd": 0.008855,
+    "plan_adherence_score": 1.0,
+    "plan_adherence_items_matched": 5,
+    "task_success_rate": 1.0,
+    "regression_count": 0,
+    "total_runs": 3
+  },
+  "delta_generated_minus_baseline": {
+    "input_tokens": 626,
+    "output_tokens": -94,
+    "total_tokens": 532,
+    "latency_seconds": -0.4918073610557858,
+    "estimated_cost_usd": 0.0006250000000000006,
+    "plan_adherence_score": 0.4,
+    "plan_adherence_items_matched": 2,
+    "context_overhead_percent": 347.77777777777777,
+    "task_success_rate": 0.0,
+    "regression_count": 0
+  }
+}
