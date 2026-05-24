@@ -1,0 +1,43 @@
+{
+  "test": "mann_whitney_u_exact_one_tailed",
+  "hypothesis": {
+    "H0": "plan adherence is equal across conditions",
+    "H1": "generated AGENTS.md produces higher plan adherence (one-tailed)"
+  },
+  "n3_real_data": {
+    "baseline_scores": [
+      0.6,
+      0.6,
+      0.6
+    ],
+    "generated_scores": [
+      1.0,
+      1.0,
+      0.8
+    ],
+    "baseline_mean": 0.6,
+    "generated_mean": 0.933333,
+    "mann_whitney_u": {
+      "U_statistic": 0.0,
+      "p_value": 0.05,
+      "rank_biserial_r": 1.0
+    }
+  },
+  "n20_simulation_mwu": {
+    "n_per_group": 20,
+    "seed": 42,
+    "baseline_freq": {
+      "0.6": 20
+    },
+    "generated_freq": {
+      "0.8": 9,
+      "1.0": 11
+    },
+    "baseline_mean": 0.6,
+    "generated_mean": 0.91,
+    "observed_delta": 0.31,
+    "U_statistic": 0.0,
+    "p_value": 7.254444551924842e-12,
+    "rank_biserial_r": 1.0
+  }
+}
