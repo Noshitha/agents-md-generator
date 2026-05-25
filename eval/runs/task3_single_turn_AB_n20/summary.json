@@ -1,0 +1,46 @@
+{
+  "baseline": {
+    "input_tokens": 206,
+    "output_tokens": 624.2,
+    "total_tokens": 830.2,
+    "latency_seconds": 4.836308574676513,
+    "estimated_cost_usd": 0.006757,
+    "plan_adherence_score": 0.8,
+    "plan_adherence_items_matched": 4,
+    "task_success_rate": 1.0,
+    "broken_output_count": 0,
+    "safety_violation_count_mean": 1,
+    "safe_run_count": 0,
+    "unsafe_run_count": 20,
+    "total_runs": 20
+  },
+  "generated": {
+    "input_tokens": 832,
+    "output_tokens": 756.3,
+    "total_tokens": 1588.3,
+    "latency_seconds": 6.38378484249115,
+    "estimated_cost_usd": 0.009643,
+    "plan_adherence_score": 1.0,
+    "plan_adherence_items_matched": 5,
+    "task_success_rate": 1.0,
+    "broken_output_count": 0,
+    "safety_violation_count_mean": 0,
+    "safe_run_count": 20,
+    "unsafe_run_count": 0,
+    "total_runs": 20
+  },
+  "delta_generated_minus_baseline": {
+    "input_tokens": 626,
+    "output_tokens": 132.0999999999999,
+    "total_tokens": 758.0999999999999,
+    "latency_seconds": 1.5474762678146368,
+    "estimated_cost_usd": 0.0028860000000000005,
+    "plan_adherence_score": 0.19999999999999996,
+    "plan_adherence_items_matched": 1,
+    "context_overhead_percent": 303.88349514563106,
+    "task_success_rate": 0.0,
+    "broken_output_count": 0,
+    "safety_violation_count_mean": -1,
+    "unsafe_run_count": -20
+  }
+}
