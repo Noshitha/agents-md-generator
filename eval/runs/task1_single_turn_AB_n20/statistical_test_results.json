@@ -1,0 +1,62 @@
+{
+  "test": "mann_whitney_u_exact_one_tailed",
+  "eval_dir": "eval/runs/task1_single_turn_AB_n20",
+  "hypothesis": {
+    "H0": "plan adherence is equal across conditions",
+    "H1": "generated AGENTS.md produces higher plan adherence (one-tailed)"
+  },
+  "real_data": {
+    "n_per_group": 20,
+    "baseline_scores": [
+      0.4,
+      0.6,
+      0.6,
+      0.6,
+      0.6,
+      0.6,
+      0.6,
+      0.4,
+      0.6,
+      0.6,
+      0.4,
+      0.6,
+      0.4,
+      0.6,
+      0.6,
+      0.6,
+      0.6,
+      0.4,
+      0.6,
+      0.6
+    ],
+    "generated_scores": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "baseline_mean": 0.55,
+    "generated_mean": 1.0,
+    "mann_whitney_u": {
+      "U_statistic": 0.0,
+      "p_value": 0.0,
+      "rank_biserial_r": 1.0
+    }
+  }
+}
