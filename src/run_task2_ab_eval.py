@@ -13,8 +13,9 @@ from openai import OpenAI
 TASK_2_PROMPT = """
 # Task 2: Environment Variable Addition
 
-Add a new optional boolean feature flag called `NEW_FEATURE_FLAG` (default `False`) to the
-backend configuration so it can be controlled via the environment without hardcoding values.
+Add a new environment variable `SMTP_PORT` (integer, default 587) to the backend configuration
+so that the email-sending service reads its SMTP port from the environment instead of a
+hardcoded value.
 
 Before editing, identify which files and subsystems are affected. Then produce a minimal
 implementation plan.
@@ -46,11 +47,11 @@ Task:
 # Task 2 requires the agent to address 4 explicit items from the prompt.
 TASK2_REQUIRED_CHECKS = {
     "identifies_affected_subsystems": {
-        "signals": ["backend", "config", "settings", "environment", "env", ".env"],
+        "signals": ["backend", "config", "settings", "environment", "env", ".env", "smtp"],
         "description": "Identifies files/subsystems likely affected",
     },
     "produces_implementation_plan": {
-        "signals": ["new_feature_flag", "feature_flag", "add", "field", "setting", "boolean", "bool", "step"],
+        "signals": ["smtp_port", "smtp", "port", "add", "field", "setting", "integer", "int", "step"],
         "description": "Produces a minimal implementation plan",
     },
     "lists_validation_steps": {
@@ -58,7 +59,7 @@ TASK2_REQUIRED_CHECKS = {
         "description": "Lists validation commands/checks",
     },
     "mentions_risks_or_assumptions": {
-        "signals": ["risk", "assumption", "default", "backward", "compatibility", "deploy", "production", "secret"],
+        "signals": ["risk", "assumption", "default", "backward", "compatibility", "deploy", "production", "port", "firewall"],
         "description": "Mentions risks or assumptions",
     },
 }
@@ -329,7 +330,7 @@ def main():
     parser.add_argument("--model", required=True)
     parser.add_argument("--baseline-agents", default="outputs/baseline_AGENTS.md")
     parser.add_argument("--generated-agents", default="outputs/generated_AGENTS.md")
-    parser.add_argument("--out-dir", default="eval/runs/task2_env_var_AB")
+    parser.add_argument("--out-dir", default="eval/runs/task2_single_turn_AB_n20")
     parser.add_argument("--n", type=int, default=1)
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--input-price-per-1m",  type=float, default=0.0)
