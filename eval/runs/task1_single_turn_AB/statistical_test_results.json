@@ -1,10 +1,12 @@
 {
   "test": "mann_whitney_u_exact_one_tailed",
+  "eval_dir": "/Users/noshitha/Desktop/Interview Preparation/Assessments/faros-agents-md-generator/eval/runs/task1_single_turn_AB",
   "hypothesis": {
     "H0": "plan adherence is equal across conditions",
     "H1": "generated AGENTS.md produces higher plan adherence (one-tailed)"
   },
-  "n3_real_data": {
+  "real_data": {
+    "n_per_group": 3,
     "baseline_scores": [
       0.6,
       0.6,
@@ -23,7 +25,7 @@
       "rank_biserial_r": 1.0
     }
   },
-  "n20_simulation_mwu": {
+  "n20_bootstrap_simulation": {
     "n_per_group": 20,
     "seed": 42,
     "baseline_freq": {

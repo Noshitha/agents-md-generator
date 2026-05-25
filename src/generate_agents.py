@@ -51,7 +51,7 @@ Important files detected:
 {bullet_list(files)}
 
 ## Setup and Validation Commands
-Before making changes, use only these commands. Do not invent alternatives.
+Commands below were inferred from repository files. Prefer detected commands over invented alternatives, and verify against README/CI when uncertain.
 
 Backend-related commands:
 {bullet_list(commands.get("backend", []))}
