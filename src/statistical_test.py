@@ -176,7 +176,7 @@ def print_n20_report(result: dict) -> None:
 # Report — N=3 (real data)
 # ---------------------------------------------------------------------------
 
-def print_report(baseline: list[float], generated: list[float], mwu: dict) -> None:
+def print_report(baseline: list[float], generated: list[float], mwu: dict, label: str = "PLAN ADHERENCE") -> None:
     sep = "=" * 60
     alpha = 0.05
     n = len(baseline)
@@ -195,7 +195,7 @@ def print_report(baseline: list[float], generated: list[float], mwu: dict) -> No
         p_display = f"{pv:.4f}"
 
     print(sep)
-    print(f"TASK 1 — PLAN ADHERENCE  |  Mann-Whitney U  (N={n}, real data)")
+    print(f"{label}  |  Mann-Whitney U  (N={n}, real data)")
     print(sep)
     print()
     print("Hypothesis")
@@ -262,9 +262,12 @@ def main() -> None:
     generated = load_scores("generated", eval_dir)
     n_real    = len(baseline)
 
+    # Derive a human-readable label from the directory name
+    label = eval_dir.name.upper().replace("_", " ")
+
     # ---- Real data MWU ----
     mwu_result = mann_whitney_one_tailed(baseline, generated)
-    print_report(baseline, generated, mwu_result)
+    print_report(baseline, generated, mwu_result, label=label)
 
     # ---- Bootstrap simulation only when n_real < 20 (supplements small samples) ----
     sim_result = None
