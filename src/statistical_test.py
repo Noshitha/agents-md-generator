@@ -17,6 +17,7 @@ Why Mann-Whitney U?
 
 from __future__ import annotations
 
+import argparse
 import json
 import random
 from collections import Counter
@@ -26,19 +27,19 @@ from scipy.stats import mannwhitneyu
 
 
 # ---------------------------------------------------------------------------
-# Paths
+# Paths (overridable via --eval-dir CLI arg)
 # ---------------------------------------------------------------------------
 
-EVAL_DIR = Path(__file__).parent.parent / "eval" / "runs" / "task1_single_turn_AB"
+DEFAULT_EVAL_DIR = Path(__file__).parent.parent / "eval" / "runs" / "task1_single_turn_AB"
 
 
 # ---------------------------------------------------------------------------
 # Data loading
 # ---------------------------------------------------------------------------
 
-def load_scores(condition: str) -> list[float]:
+def load_scores(condition: str, eval_dir: Path) -> list[float]:
     """Return plan_adherence_score for every run of *condition* (sorted by run index)."""
-    cond_dir = EVAL_DIR / condition
+    cond_dir = eval_dir / condition
     scores: list[float] = []
     for run_dir in sorted(cond_dir.iterdir()):
         metrics_file = run_dir / "metrics.json"
@@ -178,14 +179,23 @@ def print_n20_report(result: dict) -> None:
 def print_report(baseline: list[float], generated: list[float], mwu: dict) -> None:
     sep = "=" * 60
     alpha = 0.05
+    n = len(baseline)
     obs_delta = sum(generated) / len(generated) - sum(baseline) / len(baseline)
     reject = mwu["p_value"] <= alpha
 
     r = mwu["rank_biserial_r"]
     strength = "very large" if r >= 0.9 else "large" if r >= 0.7 else "medium" if r >= 0.5 else "small"
 
+    pv = mwu["p_value"]
+    if pv == 0.0:
+        p_display = "< 1e-15 (underflows float64)"
+    elif pv < 0.001:
+        p_display = f"{pv:.4e}"
+    else:
+        p_display = f"{pv:.4f}"
+
     print(sep)
-    print("TASK 1 — PLAN ADHERENCE  |  Mann-Whitney U  (N=3, real data)")
+    print(f"TASK 1 — PLAN ADHERENCE  |  Mann-Whitney U  (N={n}, real data)")
     print(sep)
     print()
     print("Hypothesis")
@@ -193,27 +203,36 @@ def print_report(baseline: list[float], generated: list[float], mwu: dict) -> No
     print("  H₁: plan adherence(generated) > plan adherence(baseline)  [one-tailed]")
     print()
     print("Raw scores")
-    print(f"  Baseline  (n={len(baseline)}): {baseline}  mean={sum(baseline)/len(baseline):.4f}")
+    print(f"  Baseline  (n={n}): {baseline}  mean={sum(baseline)/n:.4f}")
     print(f"  Generated (n={len(generated)}): {generated}  mean={sum(generated)/len(generated):.4f}")
     print(f"  Observed Δ (generated − baseline): {obs_delta:+.4f}")
     print()
     print("Mann-Whitney U (exact, one-tailed)")
     print(f"  U statistic        : {mwu['U_statistic']}")
-    print(f"  p-value            : {mwu['p_value']:.4f}")
+    print(f"  p-value            : {p_display}")
     print(f"  Decision (α={alpha})  : {'REJECT H₀ — significant' if reject else 'FAIL TO REJECT H₀'}")
     print()
     print("Effect Size — Rank-Biserial Correlation r")
     print(f"  r = {r:.4f}  ({strength} effect)")
-    print("  r=1.0 → every generated score outranked every baseline score.")
+    if r == 1.0:
+        print("  r=1.0 → every generated score outranked every baseline score.")
     print()
     print("Interpretation")
     if reject:
-        print(
-            f"  The generated AGENTS.md produces significantly higher plan adherence\n"
-            f"  than the baseline (p = {mwu['p_value']:.4f}, α = {alpha}).\n"
-            f"  Note: n=3 per group means the minimum achievable p is 1/C(6,3) = 0.05.\n"
-            f"  This is the strongest signal possible at this sample size."
-        )
+        if n <= 3:
+            from math import comb
+            min_p = 1 / comb(2 * n, n)
+            print(
+                f"  The generated AGENTS.md produces significantly higher plan adherence\n"
+                f"  than the baseline (p = {p_display}, α = {alpha}).\n"
+                f"  Note: n={n} per group means the minimum achievable p is 1/C({2*n},{n}) = {min_p:.4f}.\n"
+                f"  This is the strongest signal possible at this sample size."
+            )
+        else:
+            print(
+                f"  The generated AGENTS.md produces significantly higher plan adherence\n"
+                f"  than the baseline (p = {p_display}, α = {alpha})."
+            )
     else:
         print(
             f"  The observed difference did not reach significance at α = {alpha}.\n"
@@ -227,36 +246,55 @@ def print_report(baseline: list[float], generated: list[float], mwu: dict) -> No
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    baseline = load_scores("baseline")
-    generated = load_scores("generated")
+    parser = argparse.ArgumentParser(
+        description="Mann-Whitney U test on Task 1 plan adherence scores."
+    )
+    parser.add_argument(
+        "--eval-dir",
+        type=Path,
+        default=DEFAULT_EVAL_DIR,
+        help="Path to eval run directory containing baseline/ and generated/ subdirs.",
+    )
+    args = parser.parse_args()
+    eval_dir = args.eval_dir
 
-    # ---- N=3 real data ----
+    baseline  = load_scores("baseline",  eval_dir)
+    generated = load_scores("generated", eval_dir)
+    n_real    = len(baseline)
+
+    # ---- Real data MWU ----
     mwu_result = mann_whitney_one_tailed(baseline, generated)
     print_report(baseline, generated, mwu_result)
 
-    # ---- N=20 bootstrap simulation ----
-    sim_result = simulate_n20_mwu(baseline, generated)
-    print_n20_report(sim_result)
+    # ---- Bootstrap simulation only when n_real < 20 (supplements small samples) ----
+    sim_result = None
+    if n_real < 20:
+        sim_result = simulate_n20_mwu(baseline, generated)
+        print_n20_report(sim_result)
 
     output = {
         "test": "mann_whitney_u_exact_one_tailed",
+        "eval_dir": str(eval_dir),
         "hypothesis": {
             "H0": "plan adherence is equal across conditions",
             "H1": "generated AGENTS.md produces higher plan adherence (one-tailed)",
         },
-        "n3_real_data": {
-            "baseline_scores": baseline,
+        "real_data": {
+            "n_per_group": n_real,
+            "baseline_scores":  baseline,
             "generated_scores": generated,
-            "baseline_mean": round(sum(baseline) / len(baseline), 6),
-            "generated_mean": round(sum(generated) / len(generated), 6),
+            "baseline_mean":  round(sum(baseline)  / n_real, 6),
+            "generated_mean": round(sum(generated) / n_real, 6),
             "mann_whitney_u": mwu_result,
         },
-        "n20_simulation_mwu": {
+    }
+    if sim_result:
+        output["n20_bootstrap_simulation"] = {
             k: v for k, v in sim_result.items()
             if k not in ("baseline_sim", "generated_sim")
-        },
-    }
-    out_path = EVAL_DIR / "statistical_test_results.json"
+        }
+
+    out_path = eval_dir / "statistical_test_results.json"
     out_path.write_text(json.dumps(output, indent=2))
     print(f"Results saved → {out_path}")
 
