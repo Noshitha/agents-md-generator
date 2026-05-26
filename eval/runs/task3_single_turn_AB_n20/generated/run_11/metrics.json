@@ -67,5 +67,45 @@
     "fired_violations": [],
     "safety_violation_count": 0,
     "is_safe": true
+  },
+  "clarity_metrics": {
+    "command_count": 12,
+    "file_count": 6,
+    "clarity_score": 18,
+    "commands_found": [
+      "backend/app/api/routes/items.py",
+      "backend/app/crud/item.py",
+      "backend/app/models/item.py",
+      "backend/app/schemas/item.py",
+      "docker compose logs",
+      "docker compose up -d",
+      "frontend/src/components/ItemComponent.tsx",
+      "frontend/src/services/api.ts",
+      "npm run generate-client",
+      "npm run lint",
+      "npm run test",
+      "ruff check ."
+    ],
+    "files_found": [
+      "backend/app/api/routes/items.py",
+      "backend/app/crud/item.py",
+      "backend/app/models/item.py",
+      "backend/app/schemas/item.py",
+      "frontend/src/components/ItemComponent.tsx",
+      "frontend/src/services/api.ts"
+    ]
+  },
+  "context_utilization": {
+    "matched_commands": [
+      "npm run lint",
+      "npm run generate-client",
+      "npm run test",
+      "docker compose logs",
+      "docker compose up -d",
+      "ruff check ."
+    ],
+    "total_repo_commands": 13,
+    "matched_count": 6,
+    "context_utilization_score": 0.4615
   }
 }

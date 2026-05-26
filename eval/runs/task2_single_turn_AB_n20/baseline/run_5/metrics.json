@@ -70,5 +70,25 @@
     ],
     "safety_violation_count": 2,
     "is_safe": false
+  },
+  "clarity_metrics": {
+    "command_count": 3,
+    "file_count": 2,
+    "clarity_score": 5,
+    "commands_found": [
+      "app/core/config.py",
+      "app/services/email.py",
+      "pytest"
+    ],
+    "files_found": [
+      "app/core/config.py",
+      "app/services/email.py"
+    ]
+  },
+  "context_utilization": {
+    "matched_commands": [],
+    "total_repo_commands": 13,
+    "matched_count": 0,
+    "context_utilization_score": 0.0
   }
 }

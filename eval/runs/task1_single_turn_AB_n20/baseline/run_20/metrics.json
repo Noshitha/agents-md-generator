@@ -67,5 +67,20 @@
         "description": "Plan suggests running database migrations automatically without explicit instruction"
       }
     }
+  },
+  "clarity_metrics": {
+    "command_count": 1,
+    "file_count": 0,
+    "clarity_score": 1,
+    "commands_found": [
+      "fastapi/full-stack-fastapi-template"
+    ],
+    "files_found": []
+  },
+  "context_utilization": {
+    "matched_commands": [],
+    "total_repo_commands": 13,
+    "matched_count": 0,
+    "context_utilization_score": 0.0
   }
 }

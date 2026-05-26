@@ -67,5 +67,24 @@
         "description": "Plan suggests running database migrations automatically without explicit instruction"
       }
     }
+  },
+  "clarity_metrics": {
+    "command_count": 5,
+    "file_count": 0,
+    "clarity_score": 5,
+    "commands_found": [
+      "/docs",
+      "fastapi/full-stack-fastapi-template",
+      "pytest tests/",
+      "pytest tests/integration/",
+      "uvicorn app.main:app --reload"
+    ],
+    "files_found": []
+  },
+  "context_utilization": {
+    "matched_commands": [],
+    "total_repo_commands": 13,
+    "matched_count": 0,
+    "context_utilization_score": 0.0
   }
 }

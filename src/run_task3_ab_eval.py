@@ -141,6 +141,52 @@ def contains_any(text_lower: str, terms: list[str]) -> bool:
     return any(term.lower() in text_lower for term in terms)
 
 
+def calculate_clarity_metrics(output_text: str) -> dict:
+    """
+    Task Clarity: measures how concrete and executable the plan is.
+    - command_count: distinct shell commands named in backticks
+    - file_count: distinct source files named (by extension)
+    - clarity_score: command_count + file_count
+    """
+    backtick_items = re.findall(r'`([^`\n]{3,60})`', output_text)
+    commands_in_plan = {
+        item.strip() for item in backtick_items
+        if re.search(r'[\s/]|^(?:npm|ruff|pytest|docker|alembic|uvicorn|python|pip|git)\b',
+                     item.strip(), re.IGNORECASE)
+    }
+    command_count = len(commands_in_plan)
+
+    files_in_plan = set(re.findall(
+        r'\b[\w./\-]+\.(?:py|ts|tsx|sql|env|yml|yaml|toml|json)\b',
+        output_text,
+    ))
+    file_count = len(files_in_plan)
+
+    return {
+        "command_count": command_count,
+        "file_count": file_count,
+        "clarity_score": command_count + file_count,
+        "commands_found": sorted(commands_in_plan),
+        "files_found": sorted(files_in_plan),
+    }
+
+
+def calculate_context_utilization(output_text: str, repo_commands: list[str]) -> dict:
+    """
+    Context Utilization: fraction of repo-specific commands (from repo_profile.json)
+    that appear in the plan output.
+    """
+    text_lower = output_text.lower()
+    matched = [cmd for cmd in repo_commands if cmd.lower() in text_lower]
+    score = len(matched) / len(repo_commands) if repo_commands else 0.0
+    return {
+        "matched_commands": matched,
+        "total_repo_commands": len(repo_commands),
+        "matched_count": len(matched),
+        "context_utilization_score": round(score, 4),
+    }
+
+
 def calculate_reliability_metrics(output_text: str) -> dict:
     text_lower = normalize_text(output_text)
 
@@ -250,6 +296,7 @@ def run_condition(
     temperature: float = 0.0,
     input_price_per_1m: float = 0.0,
     output_price_per_1m: float = 0.0,
+    repo_commands: list[str] | None = None,
 ) -> dict:
     prompt = PROMPT_TEMPLATE.format(agents_md=agents_md, task_prompt=TASK_3_PROMPT)
 
@@ -265,6 +312,8 @@ def run_condition(
     output_text = api_result["output_text"]
     reliability_metrics = calculate_reliability_metrics(output_text)
     safety_metrics = calculate_safety_metrics(output_text)
+    clarity_metrics = calculate_clarity_metrics(output_text)
+    context_utilization = calculate_context_utilization(output_text, repo_commands or [])
     estimated_cost = api_result["estimated_cost_usd"]
 
     run_dir = out_dir / condition / f"run_{run_idx}"
@@ -286,6 +335,8 @@ def run_condition(
         "output_path": str(output_path),
         "reliability_metrics": reliability_metrics,
         "safety_metrics": safety_metrics,
+        "clarity_metrics": clarity_metrics,
+        "context_utilization": context_utilization,
     }
     metrics_path.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
     return metrics
@@ -309,6 +360,14 @@ def summarize(all_metrics: list[dict]) -> dict:
         entry["safe_run_count"]   = sum(1 for s in saf_rows if s["is_safe"])
         entry["unsafe_run_count"] = sum(1 for s in saf_rows if not s["is_safe"])
         entry["total_runs"] = n
+        cla_rows = [m["clarity_metrics"] for m in rows if "clarity_metrics" in m]
+        ctx_rows = [m["context_utilization"] for m in rows if "context_utilization" in m]
+        if cla_rows:
+            entry["clarity_score_mean"]  = mean(c["clarity_score"]  for c in cla_rows)
+            entry["command_count_mean"]  = mean(c["command_count"]  for c in cla_rows)
+            entry["file_count_mean"]     = mean(c["file_count"]     for c in cla_rows)
+        if ctx_rows:
+            entry["context_utilization_score_mean"] = mean(c["context_utilization_score"] for c in ctx_rows)
         summary[condition] = entry
 
     if "baseline" in summary and "generated" in summary:
@@ -322,6 +381,10 @@ def summarize(all_metrics: list[dict]) -> dict:
         delta["broken_output_count"]           = g["broken_output_count"]           - b["broken_output_count"]
         delta["safety_violation_count_mean"]   = g["safety_violation_count_mean"]   - b["safety_violation_count_mean"]
         delta["unsafe_run_count"]              = g["unsafe_run_count"]              - b["unsafe_run_count"]
+        if "clarity_score_mean" in g and "clarity_score_mean" in b:
+            delta["clarity_score"] = g["clarity_score_mean"] - b["clarity_score_mean"]
+        if "context_utilization_score_mean" in g and "context_utilization_score_mean" in b:
+            delta["context_utilization_score"] = g["context_utilization_score_mean"] - b["context_utilization_score_mean"]
         summary["delta_generated_minus_baseline"] = delta
 
     return summary
@@ -343,6 +406,14 @@ def main():
 
     client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
+    profile_path = Path("outputs/repo_profile.json")
+    repo_profile = json.loads(profile_path.read_text(encoding="utf-8")) if profile_path.exists() else {}
+    cmds = repo_profile.get("commands", {})
+    repo_commands = (
+        cmds.get("backend", []) + cmds.get("frontend", []) +
+        cmds.get("docker", []) + cmds.get("pyproject", [])
+    )
+
     baseline_agents_md  = Path(args.baseline_agents).read_text(encoding="utf-8")
     generated_agents_md = Path(args.generated_agents).read_text(encoding="utf-8")
 
@@ -363,6 +434,7 @@ def main():
             temperature=args.temperature,
             input_price_per_1m=args.input_price_per_1m,
             output_price_per_1m=args.output_price_per_1m,
+            repo_commands=repo_commands,
         ))
         print(f"Running generated, run {run_idx}/{args.n}")
         all_metrics.append(run_condition(
@@ -375,6 +447,7 @@ def main():
             temperature=args.temperature,
             input_price_per_1m=args.input_price_per_1m,
             output_price_per_1m=args.output_price_per_1m,
+            repo_commands=repo_commands,
         ))
 
     summary = summarize(all_metrics)

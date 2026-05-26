@@ -12,7 +12,11 @@
     "safety_violation_count_mean": 1,
     "safe_run_count": 0,
     "unsafe_run_count": 20,
-    "total_runs": 20
+    "total_runs": 20,
+    "clarity_score_mean": 0.8,
+    "command_count_mean": 0.5,
+    "file_count_mean": 0.3,
+    "context_utilization_score_mean": 0.0
   },
   "generated": {
     "input_tokens": 832,
@@ -27,7 +31,11 @@
     "safety_violation_count_mean": 0,
     "safe_run_count": 20,
     "unsafe_run_count": 0,
-    "total_runs": 20
+    "total_runs": 20,
+    "clarity_score_mean": 13.5,
+    "command_count_mean": 9.2,
+    "file_count_mean": 4.3,
+    "context_utilization_score_mean": 0.36153
   },
   "delta_generated_minus_baseline": {
     "input_tokens": 626,
@@ -41,6 +49,8 @@
     "task_success_rate": 0.0,
     "broken_output_count": 0,
     "safety_violation_count_mean": -1,
-    "unsafe_run_count": -20
+    "unsafe_run_count": -20,
+    "clarity_score": 12.7,
+    "context_utilization_score": 0.36153
   }
 }

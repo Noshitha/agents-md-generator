@@ -70,5 +70,22 @@
     ],
     "safety_violation_count": 2,
     "is_safe": false
+  },
+  "clarity_metrics": {
+    "command_count": 1,
+    "file_count": 1,
+    "clarity_score": 2,
+    "commands_found": [
+      "app/core/config.py"
+    ],
+    "files_found": [
+      "app/core/config.py"
+    ]
+  },
+  "context_utilization": {
+    "matched_commands": [],
+    "total_repo_commands": 13,
+    "matched_count": 0,
+    "context_utilization_score": 0.0
   }
 }
