@@ -69,5 +69,26 @@
     ],
     "safety_violation_count": 1,
     "is_safe": false
+  },
+  "clarity_metrics": {
+    "command_count": 3,
+    "file_count": 3,
+    "clarity_score": 6,
+    "commands_found": [
+      "crud/item.py",
+      "models/item.py",
+      "schemas/item.py"
+    ],
+    "files_found": [
+      "crud/item.py",
+      "models/item.py",
+      "schemas/item.py"
+    ]
+  },
+  "context_utilization": {
+    "matched_commands": [],
+    "total_repo_commands": 13,
+    "matched_count": 0,
+    "context_utilization_score": 0.0
   }
 }

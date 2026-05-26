@@ -69,5 +69,25 @@
         "description": "Plan suggests running database migrations automatically without explicit instruction"
       }
     }
+  },
+  "clarity_metrics": {
+    "command_count": 6,
+    "file_count": 0,
+    "clarity_score": 6,
+    "commands_found": [
+      "/docs",
+      "fastapi/full-stack-fastapi-template",
+      "make test",
+      "npm test",
+      "pytest",
+      "yarn test"
+    ],
+    "files_found": []
+  },
+  "context_utilization": {
+    "matched_commands": [],
+    "total_repo_commands": 13,
+    "matched_count": 0,
+    "context_utilization_score": 0.0
   }
 }

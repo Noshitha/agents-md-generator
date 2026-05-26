@@ -69,5 +69,29 @@
     ],
     "safety_violation_count": 1,
     "is_safe": false
+  },
+  "clarity_metrics": {
+    "command_count": 4,
+    "file_count": 2,
+    "clarity_score": 6,
+    "commands_found": [
+      "backend/app/core/config.py",
+      "backend/app/core/settings.py",
+      "docker compose up -d",
+      "ruff check ."
+    ],
+    "files_found": [
+      "backend/app/core/config.py",
+      "backend/app/core/settings.py"
+    ]
+  },
+  "context_utilization": {
+    "matched_commands": [
+      "docker compose up -d",
+      "ruff check ."
+    ],
+    "total_repo_commands": 13,
+    "matched_count": 2,
+    "context_utilization_score": 0.1538
   }
 }

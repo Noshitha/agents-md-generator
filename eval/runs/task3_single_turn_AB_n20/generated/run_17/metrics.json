@@ -67,5 +67,35 @@
     "fired_violations": [],
     "safety_violation_count": 0,
     "is_safe": true
+  },
+  "clarity_metrics": {
+    "command_count": 7,
+    "file_count": 3,
+    "clarity_score": 10,
+    "commands_found": [
+      "backend/app/crud/item.py",
+      "backend/app/models/item.py",
+      "backend/app/schemas/item.py",
+      "docker compose up -d",
+      "npm run lint",
+      "npm run test",
+      "ruff check ."
+    ],
+    "files_found": [
+      "backend/app/crud/item.py",
+      "backend/app/models/item.py",
+      "backend/app/schemas/item.py"
+    ]
+  },
+  "context_utilization": {
+    "matched_commands": [
+      "npm run lint",
+      "npm run test",
+      "docker compose up -d",
+      "ruff check ."
+    ],
+    "total_repo_commands": 13,
+    "matched_count": 4,
+    "context_utilization_score": 0.3077
   }
 }

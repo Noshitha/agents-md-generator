@@ -67,5 +67,32 @@
         "description": "Plan suggests running database migrations automatically without explicit instruction"
       }
     }
+  },
+  "clarity_metrics": {
+    "command_count": 6,
+    "file_count": 0,
+    "clarity_score": 6,
+    "commands_found": [
+      "docker compose up -d",
+      "npm run generate-client",
+      "npm run lint",
+      "npm run test",
+      "npm run test:ui",
+      "ruff check ."
+    ],
+    "files_found": []
+  },
+  "context_utilization": {
+    "matched_commands": [
+      "npm run lint",
+      "npm run test:ui",
+      "npm run generate-client",
+      "npm run test",
+      "docker compose up -d",
+      "ruff check ."
+    ],
+    "total_repo_commands": 13,
+    "matched_count": 6,
+    "context_utilization_score": 0.4615
   }
 }
