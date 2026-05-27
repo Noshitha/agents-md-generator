@@ -1,0 +1,282 @@
+[
+  {
+    "turn": 1,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_28NF0nBd7mxJqKRuBGdFkkkB",
+        "name": "list_directory",
+        "args": {
+          "path": "backend"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 2,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_wJoAMbKo6jTXyMuZ1tYvwXSR",
+        "name": "list_directory",
+        "args": {
+          "path": "backend/app"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 3,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_0v1SzYc92XJWrAOkHTjkuDnl",
+        "name": "list_directory",
+        "args": {
+          "path": "backend/app/api"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 4,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_82DTCsrqIcSbA0DAeVDgqzVx",
+        "name": "list_directory",
+        "args": {
+          "path": "backend/app/api/routes"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 5,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_7rit4O8nB2cNz1qjvXRT5mDI",
+        "name": "read_file",
+        "args": {
+          "path": "backend/app/api/routes/items.py"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 6,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_6piVLn9Rmd0NQBys0psnu5sT",
+        "name": "read_file",
+        "args": {
+          "path": "backend/app/models.py"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 7,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_Y0UZlvhrChbQOOwxnpqlecVY",
+        "name": "list_directory",
+        "args": {
+          "path": "frontend"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 8,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_PPMQ51CD7h5YWpUoznM01VEd",
+        "name": "read_file",
+        "args": {
+          "path": "frontend/package.json"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 9,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_FdhOy6Q0rLby069AODX2ERTf",
+        "name": "list_directory",
+        "args": {
+          "path": "frontend/src"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 10,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_As5PlpNLmzZ3fbfkHsCRwIgs",
+        "name": "list_directory",
+        "args": {
+          "path": "frontend/src/client"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 11,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_hkqD28kL0ODJEOdMzxK5EPGW",
+        "name": "read_file",
+        "args": {
+          "path": "frontend/src/client/schemas.gen.ts"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 12,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_AZMUA4CfmTApCpmEaXcu71GM",
+        "name": "read_file",
+        "args": {
+          "path": "frontend/src/client/types.gen.ts"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 13,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_bfjYnSomfUTuIw1s0tOlMTcM",
+        "name": "read_file",
+        "args": {
+          "path": "frontend/src/client/sdk.gen.ts"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 14,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_lYFLYclfvqsld7lf8G4UYs2h",
+        "name": "read_file",
+        "args": {
+          "path": "frontend/src/client/index.ts"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 15,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_Ulv6PZtYxJcbJCNi1k7JQp4d",
+        "name": "read_file",
+        "args": {
+          "path": "frontend/src/client/core/OpenAPI.ts"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 16,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_j1dx4DQQv9Ubu0SdOBMv3mbK",
+        "name": "read_file",
+        "args": {
+          "path": "frontend/src/client/core/request.ts"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 17,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_GiYX6p2GaMmJrAQ7rUYOMaHV",
+        "name": "read_file",
+        "args": {
+          "path": "frontend/src/client/core/ApiRequestOptions.ts"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 18,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_fdAj3bfiB2WHtLrCuHWovT15",
+        "name": "read_file",
+        "args": {
+          "path": "frontend/src/client/core/ApiResult.ts"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 19,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_g1uhWFHP2gIhcvGdaX99zIG5",
+        "name": "read_file",
+        "args": {
+          "path": "frontend/src/client/core/ApiError.ts"
+        }
+      }
+    ]
+  },
+  {
+    "turn": 20,
+    "role": "assistant",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "call_x5YLOaYYSkIAIO9tuxVawfa5",
+        "name": "read_file",
+        "args": {
+          "path": "frontend/src/client/core/CancelablePromise.ts"
+        }
+      }
+    ]
+  }
+]

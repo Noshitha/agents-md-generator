@@ -1,0 +1,1 @@
+To add the new optional field `category` to the existing item response model, we need to update the `ItemBase`, `ItemCreate`, `ItemUpdate`, and `ItemPublic` classes in the `models.py` file. Let's proceed with these changes.
