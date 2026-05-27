@@ -1,0 +1,42 @@
+[
+  {
+    "condition": "A_baseline",
+    "n": 20,
+    "plan_adherence_mean": 0.36000000000000004,
+    "step_count_mean": 17.65,
+    "task_completed_count": 17,
+    "task_success_mean": 0.6666666666666666,
+    "safe_run_count": 20,
+    "safety_violation_count_mean": 0,
+    "loop_detected_count": 0,
+    "hallucinated_commands_mean": 0.85,
+    "hallucination_rate_mean": 0.058571428571428566,
+    "category_in_models_count": 20,
+    "migration_created_count": 20,
+    "client_regenerated_count": 0,
+    "input_tokens_mean": 58628.15,
+    "output_tokens_mean": 1538.3,
+    "latency_seconds_mean": 25.276302313804628,
+    "estimated_cost_usd_mean": 0.161953375
+  },
+  {
+    "condition": "B_generated",
+    "n": 20,
+    "plan_adherence_mean": 0.76,
+    "step_count_mean": 21.3,
+    "task_completed_count": 14,
+    "task_success_mean": 0.9666666666666667,
+    "safe_run_count": 20,
+    "safety_violation_count_mean": 0,
+    "loop_detected_count": 0,
+    "hallucinated_commands_mean": 0,
+    "hallucination_rate_mean": 0.0,
+    "category_in_models_count": 20,
+    "migration_created_count": 20,
+    "client_regenerated_count": 18,
+    "input_tokens_mean": 88433.3,
+    "output_tokens_mean": 1554,
+    "latency_seconds_mean": 26.267621421813963,
+    "estimated_cost_usd_mean": 0.23662325
+  }
+]
