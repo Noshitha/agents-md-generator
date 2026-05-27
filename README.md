@@ -1,4 +1,4 @@
-# faros-agents-md-generator
+# agents-md-generator
 
 Automatically generates repo-specific `AGENTS.md` files from static repository analysis, then measures whether those instructions actually change coding-agent behaviour — using a rigorous A/B evaluation pipeline with statistical testing.
 
