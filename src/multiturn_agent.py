@@ -295,16 +295,35 @@ class MultiTurnAgent:
 
     # ── Tool execution ─────────────────────────────────────────
 
+    def _repo_path(self, path: str) -> pathlib.Path:
+        if not isinstance(path, str) or "\x00" in path:
+            raise ValueError("Invalid repository path")
+        relative = pathlib.Path(path)
+        if relative.is_absolute() or ".." in relative.parts:
+            raise ValueError("Invalid repository path")
+        try:
+            root = self.repo_root.resolve()
+            full = (root / relative).resolve()
+        except (OSError, RuntimeError, ValueError):
+            raise ValueError("Invalid repository path")
+        if not full.is_relative_to(root):
+            raise ValueError("Invalid repository path")
+        return full
+
     def _execute(self, name: str, args: dict, trace: AgentTrace) -> str:
+        if name in ("read_file", "write_file", "list_directory"):
+            path = args.get("path", "")
+            try:
+                full = self._repo_path(path)
+            except ValueError:
+                return f"Error: invalid repository path: {path}"
+
         if name == "read_file":
-            path = args.get("path", "").lstrip("/")
-            full = self.repo_root / path
             if full.exists() and full.is_file():
                 return full.read_text(errors="replace")[:8000]
             return f"Error: file not found: {path}"
 
         elif name == "write_file":
-            path = args.get("path", "").lstrip("/")
             content = args.get("content", "")
             trace.written_files[path] = content
             return f"Written: {path} ({len(content)} chars)"
@@ -328,11 +347,16 @@ class MultiTurnAgent:
             return output
 
         elif name == "list_directory":
-            path = args.get("path", "").lstrip("/")
-            full = self.repo_root / path
             if full.exists() and full.is_dir():
                 entries = sorted(full.iterdir())[:60]
-                lines = [f"  {'/' if e.is_dir() else ' '} {e.name}" for e in entries]
+                lines = []
+                for e in entries:
+                    try:
+                        entry = self._repo_path(str(pathlib.Path(path) / e.name))
+                        is_dir = entry.is_dir()
+                    except ValueError:
+                        is_dir = False
+                    lines.append(f"  {'/' if is_dir else ' '} {e.name}")
                 return "\n".join(lines)
             return f"Error: directory not found: {path}"
 
