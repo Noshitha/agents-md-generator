@@ -4,7 +4,7 @@ Multi-turn coding agent using GPT-4o function calling.
 Simulates a realistic coding agent that:
   - reads real files from the target repo
   - captures file writes (not applied — sandbox mode)
-  - simulates command execution (valid cmds succeed, hallucinated ones fail)
+  - simulates recognized commands without executing them
   - records a full step-by-step trace for metric extraction
 """
 
@@ -31,80 +31,48 @@ REPO_ROOT = (
 # ─────────────────────────────────────────────────────────────────
 
 # (regex, simulated stdout)
-# Ordered from most-specific to least-specific.
 _KNOWN_CMD_PATTERNS: list[tuple[str, str]] = [
-    (
-        r"docker\s+compose\s+exec\s+backend\s+pytest",
-        "===== 23 passed in 2.31s =====",
-    ),
-    (
-        r"docker\s+compose\s+exec\s+backend\s+alembic\s+revision.*--autogenerate",
-        "Generating /app/alembic/versions/a1b2c3_add_category.py ... done\nNew revision: a1b2c3",
-    ),
-    (
-        r"docker\s+compose\s+exec\s+backend\s+alembic\s+upgrade\s+head",
-        "INFO  [alembic.runtime.migration] Running upgrade -> a1b2c3, add category to item\nINFO  [alembic.runtime.migration] Database is now at head (a1b2c3).",
-    ),
-    (
-        r"docker\s+compose\s+exec\s+backend\s+alembic",
-        "Alembic command executed.",
-    ),
-    (
-        r"docker\s+compose\s+exec\s+backend\s+ruff",
-        "All checks passed.",
-    ),
-    (
-        r"docker\s+compose\s+exec\s+backend\s+mypy",
-        "Success: no issues found in 15 source files",
-    ),
-    (
-        r"docker\s+compose\s+exec\s+backend",
-        "Command executed in backend container.",
-    ),
-    (
-        r"docker\s+compose\s+exec\s+frontend",
-        "Command executed in frontend container.",
-    ),
-    (
-        r"docker\s+compose\s+up",
-        (
-            "[+] Running 4/4\n"
-            " ✔ Container db       Started\n"
-            " ✔ Container backend  Started\n"
-            " ✔ Container frontend Started"
-        ),
-    ),
-    (r"docker\s+compose", "Docker compose command executed."),
-    (
-        r"(cd\s+frontend\s*&&\s*)?npm\s+run\s+generate-client",
-        "> generate-client\n> openapi-ts\nDone! Client updated in src/client/",
-    ),
-    (r"npm\s+run\s+(dev|build|lint|preview)", "Script executed successfully."),
-    (r"npm\s+run\s+\w+", "npm script executed."),
-    (r"npm\s+(install|ci|i)\b", "added 847 packages in 12s"),
-    (r"npm\s+", "npm command executed."),
-    (r"pytest(\s|$)", "===== 23 passed in 2.31s ====="),
-    (r"ruff\s+(check|format)", "All checks passed."),
-    (r"mypy\s+", "Success: no issues found."),
-    (r"alembic\s+revision", "Generating /app/alembic/versions/a1b2c3_add_category.py ... done\nNew revision: a1b2c3"),
-    (r"alembic\s+upgrade", "INFO  [alembic.runtime.migration] Running upgrade -> a1b2c3, add category\nINFO  Database is now at head (a1b2c3)."),
-    (r"alembic\s+", "Alembic command executed."),
-    (r"python(\s|$)", "Python command executed."),
-    (r"pip\s+(install|show|list)", "Package operation completed."),
-    (r"git\s+", "Git command executed."),
-    # shell builtins — just succeed silently
-    (r"^(cd|ls|cat|echo|mkdir|cp|mv|rm|find|grep|head|tail|pwd|export|source)\b", ""),
+    (r"(?:docker\s+compose\s+exec\s+backend\s+)?pytest(?:\s+[\w./][\w./-]*)?", "===== 23 passed in 2.31s ====="),
+    (r"(?:docker\s+compose\s+exec\s+backend\s+)?alembic\s+revision\s+--autogenerate(?:\s+-m\s+(?:\"[^\"]*\"|'[^']*'|[\w-]+))?", "Generating /app/alembic/versions/a1b2c3_add_category.py ... done\nNew revision: a1b2c3"),
+    (r"(?:docker\s+compose\s+exec\s+backend\s+)?alembic\s+upgrade\s+head", "INFO  [alembic.runtime.migration] Running upgrade -> a1b2c3, add category to item\nINFO  [alembic.runtime.migration] Database is now at head (a1b2c3)."),
+    (r"(?:docker\s+compose\s+exec\s+backend\s+)?ruff\s+(?:check|format)(?:\s+[\w./][\w./-]*)?", "All checks passed."),
+    (r"(?:docker\s+compose\s+exec\s+backend\s+)?mypy(?:\s+[\w./][\w./-]*)?", "Success: no issues found in 15 source files"),
+    (r"docker\s+compose\s+up(?:\s+-d)?", "[+] Running 4/4\n ✔ Container db       Started\n ✔ Container backend  Started\n ✔ Container frontend Started"),
+    (r"docker\s+compose\s+(?:down|logs)", "Docker compose command executed."),
+    (r"npm\s+(?:install|ci|i)", "added 847 packages in 12s"),
+    (r"pwd|ls", "(no output)"),
 ]
 
 
-def simulate_command(command: str) -> tuple[str, bool]:
-    """Return (stdout, is_valid). is_valid=False → hallucinated command."""
+def simulate_command(command: str, repo_root: pathlib.Path = REPO_ROOT) -> tuple[str, bool]:
+    """Return (simulated output, recognized); no command is executed."""
     cmd = command.strip()
-    for pattern, output in _KNOWN_CMD_PATTERNS:
-        if re.search(pattern, cmd, re.IGNORECASE):
-            return output or "(no output)", True
-    first = cmd.split()[0] if cmd.split() else cmd
-    return f"bash: {first}: command not found", False
+    npm = re.fullmatch(r"(?:cd\s+(frontend|backend)\s*&&\s*)?npm\s+run\s+([\w:.-]+)(?:\s+--prefix\s+([\w./-]+))?", cmd)
+    if npm and not (npm.group(1) and npm.group(3)):
+        directory = npm.group(1) or npm.group(3) or "."
+        try:
+            root = repo_root.resolve()
+            package = (root / directory / "package.json").resolve()
+            if not package.is_relative_to(root) or ".." in pathlib.Path(directory).parts:
+                raise ValueError("Invalid package path")
+            if package.exists():
+                scripts = json.loads(package.read_text()).get("scripts", {})
+                valid = isinstance(scripts, dict) and npm.group(2) in scripts
+            else:
+                valid = npm.group(2) in {"generate-client", "dev", "build", "lint", "preview"}
+        except (OSError, RuntimeError, ValueError, AttributeError):
+            valid = False
+        if valid:
+            if npm.group(2) == "generate-client":
+                output = "> generate-client\n> openapi-ts\nDone! Client updated in src/client/"
+            else:
+                output = "npm script executed."
+            return f"[simulated] No command was executed.\n{output}", True
+    else:
+        for pattern, output in _KNOWN_CMD_PATTERNS:
+            if re.fullmatch(pattern, cmd):
+                return f"[simulated] No command was executed.\n{output}", True
+    return f"Error: unsupported command: {cmd}", False
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -158,7 +126,7 @@ TOOLS: list[dict] = [
         "function": {
             "name": "run_command",
             "description": (
-                "Execute a shell command (tests, alembic migrations, npm scripts, etc.)."
+                "Simulate a shell command (tests, alembic migrations, npm scripts, etc.); no command is executed."
             ),
             "parameters": {
                 "type": "object",
@@ -331,11 +299,11 @@ class MultiTurnAgent:
         elif name == "run_command":
             cmd = args.get("command", "")
             trace.commands_run.append(cmd)
-            output, valid = simulate_command(cmd)
+            output, valid = simulate_command(cmd, self.repo_root)
             if not valid:
                 trace.hallucinated_commands.append(cmd)
             # Side-effect: alembic revision creates a migration file
-            if re.search(r"alembic\s+revision.*--autogenerate", cmd, re.IGNORECASE):
+            if valid and re.search(r"\balembic\s+revision\s+--autogenerate\b", cmd):
                 migration_path = "backend/alembic/versions/a1b2c3_add_category.py"
                 if migration_path not in trace.written_files:
                     trace.written_files[migration_path] = (

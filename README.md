@@ -142,6 +142,8 @@ The generated `AGENTS.md` teaches the agent two repo-specific steps the baseline
 | Cost / run (avg) | **$0.1620** | $0.2366 | Generated was better but more expensive |
 | Latency (avg) | **25.3s** | 26.3s | Similar runtime, slight overhead for generated |
 
+Multi-turn commands are simulated; their output does not show that a command ran or succeeded. The `hallucinated_commands` metrics count commands the simulator does not recognize, including unsupported arguments and npm scripts missing from the targeted `package.json`. When that file is absent, only the simulator's built-in npm scripts are recognized. This stricter classification and the removal of simulated migration writes for rejected commands apply to new runs; saved results are unchanged and affected metrics are not directly comparable. The multi-turn `migration_created`, `client_regenerated`, and `task_success_score` fields are historical proxies based on simulated writes and command text, not proof of completed operations or passing tests. Plan adherence and safety checks also inspect command text, including unsupported commands. The single-turn metrics are unaffected.
+
 This rerun shows the main multi-turn tradeoff more clearly than the earlier exploratory runs: the generated `AGENTS.md` substantially improves repo-aware execution quality, but it also uses more steps and budget, which can reduce clean completion under a fixed turn limit.
 
 ---

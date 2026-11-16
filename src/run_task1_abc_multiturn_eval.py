@@ -113,7 +113,7 @@ def extract_metrics(trace: AgentTrace) -> dict:
     expected_hit = EXPECTED_WRITES & files_written
     unexpected = files_written - EXPECTED_WRITES - migration_files
 
-    # ── 6. Task success score (proxy for test pass rate) ──────
+    # ── 6. Task success score (proxy based on writes and command text) ──
     # alembic was invoked via command OR migration file was written
     alembic_cmds = [c for c in trace.commands_run if "alembic" in c.lower()]
     migration_created = bool(migration_files) or bool(alembic_cmds)
@@ -181,7 +181,7 @@ def extract_metrics(trace: AgentTrace) -> dict:
         "expected_files_hit": list(expected_hit),
         "unexpected_files": list(unexpected),
         "migration_files_written": list(migration_files),
-        # (6) task success (proxy test pass rate)
+        # (6) task success (proxy based on writes and command text)
         "task_success_score": task_success_score,
         "category_in_models": category_in_models,
         "migration_created": migration_created,
