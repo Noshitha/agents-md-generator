@@ -94,19 +94,28 @@ def detect_commands_from_pyproject(repo_path: Path):
     for pyproject in candidates:
         if not pyproject.exists():
             continue
-        with open(pyproject, "rb") as f:
-            data = tomllib.load(f)
+        try:
+            with open(pyproject, "rb") as f:
+                data = tomllib.load(f)
+        except (OSError, tomllib.TOMLDecodeError):
+            continue
+        tools = data.get("tool", {})
+        if not isinstance(tools, dict):
+            continue
         # extract pytest config
-        if data.get("tool", {}).get("pytest"):
+        if tools.get("pytest"):
             commands.append("pytest")
         # extract ruff/lint
-        if data.get("tool", {}).get("ruff"):
+        if tools.get("ruff"):
             commands.append("ruff check .")
         # extract scripts
-        scripts = data.get("tool", {}).get("taskipy", {})
-        commands.extend(scripts.values())
+        taskipy = tools.get("taskipy", {})
+        if isinstance(taskipy, dict):
+            scripts = taskipy.get("tasks", taskipy)
+            if isinstance(scripts, dict):
+                commands.extend(value for value in scripts.values() if isinstance(value, str))
 
-    return list(set(commands))
+    return sorted(set(commands))
 
 def detect_commands(repo_path: Path):
     commands = {
@@ -151,8 +160,9 @@ def detect_commands(repo_path: Path):
         try:
             pkg = json.loads(frontend_package.read_text(errors="ignore"))
             scripts = pkg.get("scripts", {})
-            for name in scripts:
-                commands["frontend"].append(f"npm run {name}")
+            if isinstance(scripts, dict):
+                for name in scripts:
+                    commands["frontend"].append(f"npm run {name}")
         except Exception:
             pass
 
@@ -161,7 +171,7 @@ def detect_commands(repo_path: Path):
 
     # deduplicate
     for key in commands:
-        commands[key] = list(set(commands[key]))
+        commands[key] = sorted(set(commands[key]))
 
     return commands
 
