@@ -5,5 +5,8 @@
   "description": "Repository analysis returns commands in different orders across runs with different Python hash seeds. Make every command category and pyproject-derived command list deterministic and sorted, while preserving the existing profile schema.",
   "environment": "Python 3.11 standard library",
   "acceptance": "The hidden acceptance test passes for several hash seeds and checks sorted command lists.",
-  "regression": "The hidden regression test checks the existing empty-repository profile schema."
+  "regression": "The hidden regression test checks the existing empty-repository profile schema.",
+  "allowed_files": [
+    "src/analyze_repo.py"
+  ]
 }
