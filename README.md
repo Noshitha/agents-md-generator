@@ -164,6 +164,15 @@ The committed `outputs/repo_profile.json` contains the original machine's absolu
 
 New profiles include an `evidence` object with `commands`, `frameworks`, and `risks` lists. Each entry records `value`, repository-relative `source`, `type`, `key`, and `classification`; command entries include `working_directory` when it is known. `verified` means configuration defines the fact, `documented` means it appeared in documentation, and `inferred` means it came from a heuristic or repository structure. These classifications do not establish that a command will succeed. README command working directories are not assumed. Commands containing common credential indicators are omitted, though this filter cannot detect every secret. Profiles without evidence remain supported as unverified legacy input.
 
+**Validate an existing instruction file:**
+```bash
+python src/validate_instructions.py outputs/generated_AGENTS.md --repo target_repos/full-stack-fastapi-template
+```
+
+The validator analyzes the repository offline; add `--profile outputs/repo_profile.json` to use a saved profile instead. It prints a JSON list with `rule`, `severity`, `explanation`, `instruction`, `line`, and `evidence`. `error` indicates a confirmed mismatch, `warning` requests review, and `unverified` indicates missing evidence. The checks use narrow instruction patterns and do not execute commands; an empty list is not a guarantee that instructions are correct or safe. Explicit command examples, quoted blocks, and fenced code blocks are not validated. The CLI reports findings without changing its exit status based on severity.
+
+To report findings while regenerating, run `python src/generate_agents.py --validate --repo target_repos/full-stack-fastapi-template`. This retains the normal generator behavior of overwriting `outputs/generated_AGENTS.md`; use a separate working directory to preserve historical artifacts.
+
 **Run the Task 1 single-turn A/B eval:**
 ```bash
 python src/run_task1_ab_eval.py \

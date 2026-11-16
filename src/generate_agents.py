@@ -120,6 +120,15 @@ Before finalizing a change, include:
 
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--validate", action="store_true")
+    parser.add_argument("--repo", type=Path)
+    args = parser.parse_args()
+    if args.validate and args.repo is None:
+        parser.error("--validate requires --repo")
+
     profile_path = Path("outputs/repo_profile.json")
     profile = json.loads(profile_path.read_text())
 
@@ -130,3 +139,10 @@ if __name__ == "__main__":
 
     print(md)
     print(f"\nWrote {output_path}")
+    if args.validate:
+        if __package__:
+            from .validate_instructions import validate_instructions
+        else:
+            from validate_instructions import validate_instructions
+        print("\nValidation findings:")
+        print(json.dumps(validate_instructions(md, args.repo, profile), indent=2))
