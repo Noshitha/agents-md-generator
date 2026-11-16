@@ -150,17 +150,24 @@ This rerun shows the main multi-turn tradeoff more clearly than the earlier expl
 
 ## Setup
 
+Python 3.11 or newer is required. To fetch the pinned target repository:
+
 ```bash
-pip install -r requirements.txt
-cp .env.example .env   # add OPENAI_API_KEY
+git submodule update --init target_repos/full-stack-fastapi-template
+python -m pip install -r requirements.txt pytest
+python -m pytest -q --ignore=target_repos
 ```
+
+The target Gitlink is pinned to `d92bb189230bb8d27554d6cd947ef3ae543bae31`; initialization needs network access to the configured upstream. The pinned commit was not verified against that upstream in this checkout. The offline tests use temporary repositories and do not require the target checkout or an API key. For API evaluations, set `OPENAI_API_KEY` in the environment or in a local `.env` file. API evaluations incur costs.
+
+The committed `outputs/repo_profile.json` contains the original machine's absolute repository path. The committed `outputs/generated_AGENTS.md` also differs from the current generator: its setup section requires only the listed commands, while the generator recommends verifying inferred commands. These historical artifacts are retained for the recorded experiments. Running `src/analyze_repo.py` or `src/generate_agents.py` directly overwrites them; compare generated results in a separate location before replacing them. Analysis now sorts commands, so their order can also differ from the historical profile. For an unchanged repository at the same path, analysis and generation are deterministic. Missing or malformed package and pyproject configuration is skipped during command detection.
 
 **Run the Task 1 single-turn A/B eval:**
 ```bash
 python src/run_task1_ab_eval.py \
   --model gpt-4o \
   --n 3 \
-  --out-dir eval/runs/task1_single_turn_AB \
+  --out-dir eval/runs/task1_single_turn_new \
   --input-price-per-1m 2.50 \
   --output-price-per-1m 10.00
 ```
@@ -171,15 +178,16 @@ python src/run_task1_abc_multiturn_eval.py \
   --model gpt-4o \
   --n 20 \
   --conditions A,B \
-  --out-dir eval/runs/task1_multiturn_AB_rerun_n20 \
+  --out-dir eval/runs/task1_multiturn_new \
   --input-price-per-1m 2.50 \
   --output-price-per-1m 10.00
 ```
 
-**Run the statistical test:**
+**Run the statistical test on a new single-turn run:**
 ```bash
-python src/statistical_test.py
+python src/statistical_test.py --eval-dir eval/runs/task1_single_turn_new
 ```
+The statistical test writes its results into the selected run directory.
 
 ---
 
