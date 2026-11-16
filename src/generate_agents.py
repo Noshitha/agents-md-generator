@@ -1,3 +1,4 @@
+import copy
 import json
 import re
 from pathlib import Path
@@ -119,30 +120,114 @@ Before finalizing a change, include:
     return md
 
 
+def classify_task(task, profile):
+    text = task.lower()
+    if re.search(r"\b(?:maybe|perhaps|unknown|unsure|unclear|general|investigate)\b", text):
+        return ["general"]
+    keywords = {
+        "backend": r"\b(?:backend|server|api|endpoint|route|handler|fastapi)\b",
+        "frontend": r"\b(?:frontend|ui|browser|component|styling|css|react|typescript)\b",
+        "database": r"\b(?:database|migration|migrations|alembic|sql|schema|model)\b",
+        "security": r"\b(?:auth|authentication|authorization|security|login|password|jwt|permissions)\b",
+        "docker": r"\b(?:docker|compose|container|deployment|deploy|hosting)\b",
+        "testing": r"\b(?:test|tests|testing|pytest|coverage)\b",
+    }
+    areas = [area for area, pattern in keywords.items() if re.search(pattern, text)]
+    if "backend" in areas and re.search(r"\b(?:api|endpoint|route)\b", text) and re.search(r"\b(?:schema|model|contract|response|endpoint|route)\b", text):
+        if "frontend" in profile.get("top_level_dirs", []) or "backend_frontend_api_contract_drift" in profile.get("inferred_risks", []):
+            if "frontend" not in areas:
+                areas.append("frontend")
+    return sorted(areas) if areas else ["general"]
+
+
+def select_task_instructions(profile, task):
+    areas = classify_task(task, profile)
+    evidence = profile.get("evidence")
+    if "general" in areas or not isinstance(evidence, dict) or any(area in areas for area in ("database", "security", "docker", "testing")):
+        return generate_agents_md(profile)
+
+    selected = copy.deepcopy(profile)
+    command_items = selected["evidence"].get("commands", [])
+    kept = []
+    for item in command_items:
+        directory = item.get("working_directory")
+        parts = Path(directory).parts if isinstance(directory, str) else ()
+        component = parts[0] if parts and parts[0] in ("backend", "frontend") else None
+        key = item.get("key", "")
+        local_command = re.fullmatch(r"(?:scripts|tool\.taskipy(?:\.tasks)?)\.(?:dev|preview)", key)
+        if item.get("classification") == "verified" and local_command and component and component not in areas:
+            continue
+        kept.append(item)
+    selected["evidence"]["commands"] = kept
+    return generate_agents_md(selected)
+
+
+def instruction_metrics(original, selected):
+    original_bytes = len(original.encode("utf-8"))
+    selected_bytes = len(selected.encode("utf-8"))
+    return {
+        "original_bytes": original_bytes,
+        "selected_bytes": selected_bytes,
+        "original_words": len(original.split()),
+        "selected_words": len(selected.split()),
+        "reduction_percent": round((original_bytes - selected_bytes) / original_bytes * 100, 2) if original_bytes else 0.0,
+    }
+
+
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--validate", action="store_true")
     parser.add_argument("--repo", type=Path)
+    parser.add_argument("--task")
+    parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     if args.validate and args.repo is None:
         parser.error("--validate requires --repo")
+    if args.output is not None and args.task is None:
+        parser.error("--output requires --task")
 
     profile_path = Path("outputs/repo_profile.json")
     profile = json.loads(profile_path.read_text())
 
     md = generate_agents_md(profile)
 
-    output_path = Path("outputs/generated_AGENTS.md")
-    output_path.write_text(md)
+    if args.task is not None:
+        import sys
 
-    print(md)
-    print(f"\nWrote {output_path}")
-    if args.validate:
-        if __package__:
-            from .validate_instructions import validate_instructions
+        selected = select_task_instructions(profile, args.task)
+        if args.validate:
+            if __package__:
+                from .validate_instructions import validate_instructions
+            else:
+                from validate_instructions import validate_instructions
+            findings = {"full": validate_instructions(md, args.repo, profile), "selected": validate_instructions(selected, args.repo, profile)}
+        if args.output is not None:
+            if args.output.resolve() == Path("outputs/generated_AGENTS.md").resolve():
+                parser.error("--output must not be the full generated AGENTS.md")
+            try:
+                with args.output.open("x", encoding="utf-8") as f:
+                    f.write(selected)
+            except FileExistsError:
+                parser.error("--output must not already exist")
+        print(selected, end="")
+        print(json.dumps(instruction_metrics(md, selected), indent=2), file=sys.stderr)
+        if args.validate:
+            print("Validation findings (full and selected):", file=sys.stderr)
+            print(json.dumps(findings, indent=2), file=sys.stderr)
         else:
-            from validate_instructions import validate_instructions
-        print("\nValidation findings:")
-        print(json.dumps(validate_instructions(md, args.repo, profile), indent=2))
+            print("Validation not run; use --validate --repo to review findings.", file=sys.stderr)
+    else:
+        output_path = Path("outputs/generated_AGENTS.md")
+        output_path.write_text(md)
+
+        print(md)
+        print(f"\nWrote {output_path}")
+        if args.validate:
+            if __package__:
+                from .validate_instructions import validate_instructions
+            else:
+                from validate_instructions import validate_instructions
+            print("\nValidation findings:")
+            print(json.dumps(validate_instructions(md, args.repo, profile), indent=2))

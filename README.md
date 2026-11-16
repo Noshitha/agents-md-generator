@@ -173,6 +173,15 @@ The validator analyzes the repository offline; add `--profile outputs/repo_profi
 
 To report findings while regenerating, run `python src/generate_agents.py --validate --repo target_repos/full-stack-fastapi-template`. This retains the normal generator behavior of overwriting `outputs/generated_AGENTS.md`; use a separate working directory to preserve historical artifacts.
 
+**Select guidance for a task:**
+```bash
+python src/generate_agents.py --task "Fix frontend button styling" --validate --repo target_repos/full-stack-fastapi-template
+```
+
+Task-specific Markdown is printed to standard output; byte counts, word counts, reduction percentage, and optional validation findings go to standard error. Add `--output path/to/new-file.md` to save a separate file; existing files and the full generated AGENTS file are never overwritten by task mode. Validation reports findings for both the full and selected guidance, and passing it does not prove completeness.
+
+Selection uses task keywords and repository evidence. It preserves safety boundaries, risk guidance, checks, documented commands, and commands with unknown scope. Only verified component-local development commands are omitted for a different component. Unknown or ambiguous tasks, legacy profiles, and security, database, deployment, or testing work retain full guidance. Classification is heuristic; review the full guidance when task scope or cross-component effects are uncertain. Word and byte counts are not model token counts.
+
 **Run the Task 1 single-turn A/B eval:**
 ```bash
 python src/run_task1_ab_eval.py \
