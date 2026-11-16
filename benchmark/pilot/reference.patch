@@ -1,0 +1,10 @@
+diff --git a/base/src/analyze_repo.py b/workspace/src/analyze_repo.py
+index cad222b..1cf93d6 100644
+--- a/base/src/analyze_repo.py
++++ b/workspace/src/analyze_repo.py
+@@ -109 +109 @@ def detect_commands_from_pyproject(repo_path: Path):
+-    return list(set(commands))
++    return sorted(set(commands))
+@@ -164 +164 @@ def detect_commands(repo_path: Path):
+-        commands[key] = list(set(commands[key]))
++        commands[key] = sorted(set(commands[key]))

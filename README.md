@@ -211,6 +211,12 @@ The statistical test writes its results into the selected run directory.
 
 ---
 
+## Real coding-agent benchmark pilot
+
+An offline pilot harness and one frozen task fixture are described in [benchmark/README.md](benchmark/README.md). The fixture has been checked in isolated containers, but no real coding-agent benchmark runs have been performed and the planned 12-task set is not yet available.
+
+---
+
 ## Roadmap
 
 ### Phase 1 — Automated Context Generation
