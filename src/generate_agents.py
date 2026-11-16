@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 
@@ -19,10 +20,10 @@ def generate_agents_md(profile):
 
     # --- Change Guidance (risk-driven, only show relevant ones) ---
     risk_guidance = {
-        "backend_frontend_api_contract_drift": "For backend API changes, check whether frontend API clients, schemas, or user-facing behavior also need updates. Run `npm run generate-client` after any route or model change.",
+        "backend_frontend_api_contract_drift": "For backend API changes, check whether frontend API clients, schemas, or user-facing behavior also need updates.",
         "database_model_or_schema_change": "For database/model changes, verify schema compatibility and whether migrations or fixture updates are needed.",
         "secrets_or_environment_config": "For environment/config changes, update example configuration files and documentation. Never hardcode credentials.",
-        "local_service_dependency_docker": "Local development requires Docker services running. Use `docker compose up -d` before starting backend or frontend.",
+        "local_service_dependency_docker": "Check the repository's Docker configuration for local service dependencies.",
         "auth_or_backend_security_sensitive_change": "Auth, JWT, and password flows are security-sensitive. Avoid refactoring these unless explicitly instructed.",
     }
 
@@ -33,15 +34,47 @@ def generate_agents_md(profile):
     ]
     change_guidance = "\n".join(guidance_lines) if guidance_lines else "- No specific risk guidance inferred."
 
+    evidence = profile.get("evidence")
+    if isinstance(evidence, dict):
+        command_items = evidence.get("commands", [])
+        command_lines = []
+        for classification, label in (("verified", "Verified configuration"), ("documented", "Documented, unverified")):
+            entries = []
+            for item in command_items:
+                if item.get("classification") != classification:
+                    continue
+                command = item.get("value", "")
+                if item.get("type") != "package.json" and re.search(r"\b(?:npm|pnpm|yarn|bun)\b", command):
+                    continue
+                directory = item.get("working_directory")
+                source = item.get("source", "")
+                suffix = f"working directory: `{directory}`" if directory else "working directory not established"
+                key = item.get("key", "") if classification == "verified" else ""
+                reference = f"`{source}`: `{key}`" if key else f"`{source}`"
+                line = f"- `{command}` (source: {reference}; {suffix})"
+                if line not in entries:
+                    entries.append(line)
+            if entries:
+                command_lines.append(f"{label}:\n" + "\n".join(entries))
+        command_text = "\n\n".join(command_lines) if command_lines else "- None detected"
+        framework_items = evidence.get("frameworks", [])
+        verified = sorted({item["value"] for item in framework_items if item.get("classification") == "verified"})
+        inferred = sorted(set(frameworks) - set(verified))
+        framework_text = f"Configuration: {', '.join(verified) if verified else 'none detected'}; inferred: {', '.join(inferred) if inferred else 'none detected'}"
+    else:
+        legacy = sorted({command for values in commands.values() for command in values if not re.search(r"\b(?:npm|pnpm|yarn|bun)\b", command)})
+        command_text = "Unverified legacy commands (working directory not established):\n" + bullet_list(legacy)
+        framework_text = "Unverified legacy detection: " + (", ".join(frameworks) if frameworks else "none detected")
+
     md = f"""# AGENTS.md
 > Auto-generated from repository signals. Do not edit manually.
 
 ## Project Summary
 Repository: `{repo_name}`
 Detected languages: {", ".join(languages) if languages else "unknown"}
-Detected frameworks/tools: {", ".join(frameworks) if frameworks else "unknown"}
+Detected frameworks/tools — {framework_text}
 
-This appears to be a full-stack application with repo-specific boundaries between backend, frontend, Docker/local services, and environment configuration.
+Inspect the repository before applying its project-specific guidance.
 
 ## Repository Map
 Top-level directories detected:
@@ -51,19 +84,9 @@ Important files detected:
 {bullet_list(files)}
 
 ## Setup and Validation Commands
-Commands below were inferred from repository files. Prefer detected commands over invented alternatives, and verify against README/CI when uncertain.
+Configuration confirms definitions, not successful execution. Check unverified commands and their working directory before use.
 
-Backend-related commands:
-{bullet_list(commands.get("backend", []))}
-
-Frontend-related commands:
-{bullet_list(commands.get("frontend", []))}
-
-Docker/local-service commands:
-{bullet_list(commands.get("docker", []))}
-
-Lint/check commands (from pyproject.toml):
-{bullet_list(commands.get("pyproject", []))}
+{command_text}
 
 ## Change Guidance for Coding Agents
 - Before editing, identify whether the task affects backend, frontend, database/schema, Docker/local services, or environment configuration.

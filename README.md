@@ -162,6 +162,8 @@ The target Gitlink is pinned to `d92bb189230bb8d27554d6cd947ef3ae543bae31`; init
 
 The committed `outputs/repo_profile.json` contains the original machine's absolute repository path. The committed `outputs/generated_AGENTS.md` also differs from the current generator: its setup section requires only the listed commands, while the generator recommends verifying inferred commands. These historical artifacts are retained for the recorded experiments. Running `src/analyze_repo.py` or `src/generate_agents.py` directly overwrites them; compare generated results in a separate location before replacing them. Analysis now sorts commands, so their order can also differ from the historical profile. For an unchanged repository at the same path, analysis and generation are deterministic. Missing or malformed package and pyproject configuration is skipped during command detection.
 
+New profiles include an `evidence` object with `commands`, `frameworks`, and `risks` lists. Each entry records `value`, repository-relative `source`, `type`, `key`, and `classification`; command entries include `working_directory` when it is known. `verified` means configuration defines the fact, `documented` means it appeared in documentation, and `inferred` means it came from a heuristic or repository structure. These classifications do not establish that a command will succeed. README command working directories are not assumed. Commands containing common credential indicators are omitted, though this filter cannot detect every secret. Profiles without evidence remain supported as unverified legacy input.
+
 **Run the Task 1 single-turn A/B eval:**
 ```bash
 python src/run_task1_ab_eval.py \
